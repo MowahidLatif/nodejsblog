@@ -26,4 +26,12 @@ router.get("/about", (req, res) => {
   res.render("about", { local });
 });
 
+router.get("/careers", (req, res) => {
+  const local = {
+    title: "Careers Page",
+    description: "Career opportunities",
+  };
+  res.render("careers", { local });
+});
+
 module.exports = router;
