@@ -42,15 +42,43 @@ router.get("/careers", (req, res) => {
   res.render("careers", { local });
 });
 
-// function insertCarDataTest() {
-//   CarData.insertMany([
-//     { make: "Lamborghini", model: "Aventador", year: 2022, mileage: 1500 },
-//     { make: "Ferrari", model: "488 GTB", year: 2021, mileage: 5000 },
-//     { make: "Porsche", model: "911 Turbo S", year: 2023, mileage: 1200 },
-//   ]);
-// }
+// HOW DOES THE CODE KNOW THAT :ID IS WHERE THE SLUG GOES
+router.get("/post/:id", async (req, res) => {
+  const local = {
+    title: "Careers Page",
+    description: "Career opportunities",
+  };
 
-// insertCarDataTest();
+  try {
+    let slug = req.params.id;
+    const data = await Post.findById({ _id: slug });
+    res.render("post", { local, data });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.post("/search", async (req, res) => {
+  const local = {
+    title: "Searching...",
+    description: "Searching...",
+  };
+
+  try {
+    let searchTerm = req.body.searchTerm;
+    const searchNoSpecialChar = searchTerm.replace(/[^a-zA-Z0-9]/g, "");
+    const data = await Post.find({
+      $or: [
+        { title: { $regex: new RegExp(searchNoSpecialChar, "i") } },
+        { body: { $regex: new RegExp(searchNoSpecialChar, "i") } },
+      ],
+    });
+
+    res.render("search", { local, data });
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 // function insertPostData () {
 //   Post.insertMany([
