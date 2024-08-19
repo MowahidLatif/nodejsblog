@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const Post = require("../models/post");
-const CarData = require("../models/car");
 
 router.get("", async (req, res) => {
   const local = {
