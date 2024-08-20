@@ -3,69 +3,88 @@ const router = express.Router();
 const Post = require("../models/post");
 
 router.get("", async (req, res) => {
-  const local = {
-    title: "Home Page",
-    description: "Welcome to my home page",
-  };
-
   try {
-    const data = await Post.find();
-    res.render("index", { local, data });
+    const locals = {
+      title: "NodeJs Blog",
+      description: "Simple Blog created with NodeJs, Express & MongoDb.",
+    };
+
+    let perPage = 10;
+    let page = req.query.page || 1;
+
+    const data = await Post.aggregate([{ $sort: { createdAt: -1 } }])
+      .skip(perPage * page - perPage)
+      .limit(perPage)
+      .exec();
+
+    const count = await Post.countDocuments({});
+    const nextPage = parseInt(page) + 1;
+    const hasNextPage = nextPage <= Math.ceil(count / perPage);
+
+    res.render("index", {
+      locals,
+      data,
+      current: page,
+      nextPage: hasNextPage ? nextPage : null,
+      currentRoute: "/",
+    });
   } catch (error) {
     console.log(error);
   }
 });
 
 router.get("/contact", (req, res) => {
-  const local = {
+  const locals = {
     title: "Contact Page",
     description: "Contact me at my email",
   };
 
-  res.render("contact", { local });
+  res.render("contact", { locals });
 });
 
 router.get("/about", (req, res) => {
-  const local = {
-    title: "About Page",
-    description: "About Me!",
-  };
-  res.render("about", { local });
+  res.render("about", {
+    currentRoute: "/about",
+  });
 });
 
 router.get("/careers", (req, res) => {
-  const local = {
+  const locals = {
     title: "Careers Page",
     description: "Career opportunities",
   };
-  res.render("careers", { local });
+  res.render("careers", { locals });
 });
 
-// HOW DOES THE CODE KNOW THAT :ID IS WHERE THE SLUG GOES
 router.get("/post/:id", async (req, res) => {
-  const local = {
-    title: "Careers Page",
-    description: "Career opportunities",
-  };
-
   try {
     let slug = req.params.id;
     const data = await Post.findById({ _id: slug });
-    res.render("post", { local, data });
+    const locals = {
+      title: data.title,
+      description: "Simple Blog created with NodeJs, Express & MongoDb.",
+    };
+
+    res.render("post", {
+      locals,
+      data,
+      currentRoute: `/post/${slug}`,
+    });
   } catch (error) {
     console.log(error);
   }
 });
 
 router.post("/search", async (req, res) => {
-  const local = {
-    title: "Searching...",
-    description: "Searching...",
-  };
-
   try {
+    const locals = {
+      title: "Seach",
+      description: "Simple Blog created with NodeJs, Express & MongoDb.",
+    };
+
     let searchTerm = req.body.searchTerm;
-    const searchNoSpecialChar = searchTerm.replace(/[^a-zA-Z0-9]/g, "");
+    const searchNoSpecialChar = searchTerm.replace(/[^a-zA-Z0-9 ]/g, "");
+
     const data = await Post.find({
       $or: [
         { title: { $regex: new RegExp(searchNoSpecialChar, "i") } },
@@ -73,21 +92,14 @@ router.post("/search", async (req, res) => {
       ],
     });
 
-    res.render("search", { local, data });
+    res.render("search", {
+      data,
+      locals,
+      currentRoute: "/",
+    });
   } catch (error) {
     console.log(error);
   }
 });
-
-// function insertPostData () {
-//   Post.insertMany([
-//     {
-//       title: "Building APIs with Node.js",
-//       body: "Learn how to use Node.js to build RESTful APIs using frameworks like Express.js"
-//     }
-//   ])
-// }
-
-// insertPostData();
 
 module.exports = router;
