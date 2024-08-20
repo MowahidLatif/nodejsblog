@@ -101,7 +101,39 @@ router.get("/dashboard", authMiddleware, async (req, res) => {
       description: "Welcome to the Dashboard.",
     };
 
-    res.render("admin/dashboard", { local, data });
+    const data = await Post.find();
+    res.render("admin/dashboard", { local, data, layout: adminLayout });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.get("/add-post", authMiddleware, async (req, res) => {
+  try {
+    const local = {
+      title: "Add Post",
+      description: "Add Post Here.",
+    };
+
+    res.render("admin/add-post", { local, layout: adminLayout });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+router.post("/add-post", authMiddleware, async (req, res) => {
+  try {
+    try {
+      const newPost = new Post({
+        title: req.body.title,
+        body: req.body.body,
+      });
+
+      await Post.create(newPost);
+    } catch (error) {
+      console.log(error);
+    }
+    res.redirect("/dashboard");
   } catch (error) {
     console.log(error);
   }
